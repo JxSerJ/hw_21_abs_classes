@@ -9,7 +9,7 @@ class Store(Storage):
         self._capacity = capacity
 
     def __repr__(self):
-        return f'Магазин {self._name}\n' \
+        return f'{self._name}\n' \
                f'Содержимое: {self.items}'
 
     @property
@@ -24,7 +24,7 @@ class Store(Storage):
         try:
             if self.get_free_space() < item_quantity:
                 raise InsufficientStorageCapacity(storage_name=self._name, item_name=item_name,
-                                                  item_quantity=item_quantity, free_space= self.get_free_space())
+                                                  item_quantity=item_quantity, free_space=self.get_free_space())
             self.items[item_name] = item_quantity
 
         except InsufficientStorageCapacity as err:
