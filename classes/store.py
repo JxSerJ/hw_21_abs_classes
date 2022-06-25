@@ -9,8 +9,12 @@ class Store(Storage):
         self._capacity = capacity
 
     def __repr__(self):
-        return f'{self._name}\n' \
+        return f'{self.name}\n' \
                f'Содержимое: {self.items}'
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def items(self):
@@ -23,7 +27,7 @@ class Store(Storage):
     def add(self, item_name: str, item_quantity: int):
         try:
             if self.get_free_space() < item_quantity:
-                raise InsufficientStorageCapacity(storage_name=self._name, item_name=item_name,
+                raise InsufficientStorageCapacity(storage_name=self.name, item_name=item_name,
                                                   item_quantity=item_quantity, free_space=self.get_free_space())
             self.items[item_name] = item_quantity
 
@@ -33,7 +37,7 @@ class Store(Storage):
     def remove(self, item_name: str, item_quantity: int):
         try:
             if item_name not in self.items:
-                raise ItemNotFound(storage_name=self._name, item_name=item_name)
+                raise ItemNotFound(storage_name=self.name, item_name=item_name)
             elif self.items[item_name] < item_quantity:
                 self.items[item_name] = 0
             else:
@@ -45,9 +49,9 @@ class Store(Storage):
     def remove_item_entirely(self, item_name: str):
         try:
             if item_name not in self.items:
-                raise ItemNotFound(storage_name=self._name, item_name=item_name)
+                raise ItemNotFound(storage_name=self.name, item_name=item_name)
             elif self.items[item_name] != 0:
-                raise NotEmptyItem(storage_name=self._name, item_name=item_name)
+                raise NotEmptyItem(storage_name=self.name, item_name=item_name)
             self.items.pop(item_name)
 
         except NotEmptyItem as err:
