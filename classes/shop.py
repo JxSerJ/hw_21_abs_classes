@@ -1,12 +1,13 @@
 from classes.abstractions import Storage
-from exceptions import InsufficientStorageCapacity, NotEmptyItem, ItemNotFound
+from exceptions import InsufficientStorageCapacity, NotEmptyItem, ItemNotFound, InsufficientUniqueItemsCapacity
 
 
-class Store(Storage):
-    def __init__(self, name: str, items: dict[str, int], capacity: int = 100):
+class Shop(Storage):
+    def __init__(self, name: str, items: dict[str, int], capacity: int = 20, unique_items_capacity: int = 5):
         self._name = name
         self._items = items
         self._capacity = capacity
+        self._unique_items_capacity = unique_items_capacity
 
     def __repr__(self):
         return f'{self.name}\n' \
@@ -24,13 +25,23 @@ class Store(Storage):
     def capacity(self):
         return self._capacity
 
+    @property
+    def unique_items_capacity(self):
+        return self._unique_items_capacity
+
     def add(self, item_name: str, item_quantity: int):
         try:
+            if self.unique_items_capacity == self.get_unique_items_count():
+                raise InsufficientUniqueItemsCapacity(storage_name=self.name, item_name=item_name,
+                                                      unique_items_space=self.unique_items_capacity)
             if self.get_free_space() < item_quantity:
                 raise InsufficientStorageCapacity(storage_name=self.name, item_name=item_name,
                                                   item_quantity=item_quantity, free_space=self.get_free_space())
+
             self.items[item_name] = item_quantity
 
+        except InsufficientUniqueItemsCapacity as err:
+            print(err.message)
         except InsufficientStorageCapacity as err:
             print(err.message)
 
@@ -61,6 +72,9 @@ class Store(Storage):
 
     def get_free_space(self) -> int:
         return self.capacity - sum(self.items.values())
+
+    def get_free_space_unique_items(self) -> int:
+        return self.unique_items_capacity - self.get_unique_items_count()
 
     def get_items(self) -> dict[str, int]:
         return self.items
