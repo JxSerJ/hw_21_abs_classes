@@ -71,3 +71,17 @@ class ItemNotFound(BaseStorageError):
     def message_constructor(self):
         message = f"Позиция \"{self.item_name}\" не найдена в хранилище \"{self.storage_name}\"."
         return message
+
+
+class BaseRequestError(Exception):
+    pass
+
+
+class IncorrectRequest(BaseRequestError):
+    def __init__(self):
+        self.message = 'Некорректный запрос'
+
+
+class StorageNotFound(BaseRequestError):
+    def __init__(self, storage_name: str):
+        self.message = f'Некорректный запрос. Хранилище "{storage_name}" не найдено'

@@ -1,5 +1,6 @@
 from classes.abstractions import Storage
 from exceptions import InsufficientStorageCapacity, NotEmptyItem, ItemNotFound
+from colorama import Fore
 
 
 class Store(Storage):
@@ -9,12 +10,18 @@ class Store(Storage):
         self._capacity = capacity
 
     def __repr__(self):
-        return f'{self.name}\n' \
-               f'Содержимое: {self.items}'
+        new_line = '\n'
+        return f'Наименование: {Fore.CYAN}{self.name}\n{Fore.RESET}' + \
+               f'Содержимое: ' + \
+               f'{new_line.join(["".rjust(14-(len("Содержимое: ") if list(self.items.keys()).index(item)==0 else 0), " ") + f"{Fore.YELLOW}" + (str(value) + f" {Fore.WHITE}" + item + f"{Fore.RESET}") for item, value in self.items.items()]) + new_line}'
 
     @property
     def name(self):
         return self._name
+
+    @name.setter
+    def name(self, new_name):
+        self._name = new_name
 
     @property
     def items(self):
@@ -29,7 +36,9 @@ class Store(Storage):
             if self.get_free_space() < item_quantity:
                 raise InsufficientStorageCapacity(storage_name=self.name, item_name=item_name,
                                                   item_quantity=item_quantity, free_space=self.get_free_space())
-            self.items[item_name] = item_quantity
+            if item_name not in self.items:
+                self.items[item_name] = item_quantity
+            self.items[item_name] += item_quantity
 
         except InsufficientStorageCapacity as err:
             print(err.message)
