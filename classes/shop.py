@@ -14,7 +14,7 @@ class Shop(Storage):
         new_line = '\n'
         return f'Наименование: {Fore.CYAN}{self.name}\n{Fore.RESET}' + \
                f'Содержимое: ' + \
-               f'{new_line.join(["".rjust(14-(len("Содержимое: ") if list(self.items.keys()).index(item)==0 else 0), " ") + f"{Fore.YELLOW}" + (str(value) + f" {Fore.WHITE}" + item + f"{Fore.RESET}") for item, value in self.items.items()]) + new_line}'
+               f'{new_line.join(["".rjust(14 - (len("Содержимое: ") if list(self.items.keys()).index(item) == 0 else 0), " ") + f"{Fore.YELLOW}" + (str(value) + f" {Fore.WHITE}" + item + f"{Fore.RESET}") for item, value in self.items.items()]) + new_line}'
 
     @property
     def name(self):
@@ -33,47 +33,38 @@ class Shop(Storage):
         return self._unique_items_capacity
 
     def add(self, item_name: str, item_quantity: int):
-        try:
+        if self.get_free_space() < item_quantity:
+            raise InsufficientStorageCapacity(storage_name=self.name, item_name=item_name,
+                                              item_quantity=item_quantity, free_space=self.get_free_space())
+
+        if item_name not in self.items:
             if self.unique_items_capacity == self.get_unique_items_count():
                 raise InsufficientUniqueItemsCapacity(storage_name=self.name, item_name=item_name,
                                                       unique_items_space=self.unique_items_capacity)
-            if self.get_free_space() < item_quantity:
-                raise InsufficientStorageCapacity(storage_name=self.name, item_name=item_name,
-                                                  item_quantity=item_quantity, free_space=self.get_free_space())
-
-            if item_name not in self.items:
-                self.items[item_name] = item_quantity
+            self.items[item_name] = item_quantity
+        else:
             self.items[item_name] += item_quantity
 
-        except InsufficientUniqueItemsCapacity as err:
-            print(err.message)
-        except InsufficientStorageCapacity as err:
-            print(err.message)
-
     def remove(self, item_name: str, item_quantity: int):
-        try:
-            if item_name not in self.items:
-                raise ItemNotFound(storage_name=self.name, item_name=item_name)
-            elif self.items[item_name] < item_quantity:
-                self.items[item_name] = 0
-            else:
-                self.items[item_name] -= item_quantity
+        if item_name not in self.items:
+            raise ItemNotFound(storage_name=self.name, item_name=item_name)
+        elif self.items[item_name] < item_quantity:
+            quantity = self.items[item_name]
+            self.items[item_name] = 0
+            self.remove_item_entry(item_name=item_name)
+            return quantity
+        else:
+            self.items[item_name] -= item_quantity
+            if self.items[item_name] == 0:
+                self.remove_item_entry(item_name=item_name)
+            return item_quantity
 
-        except ItemNotFound as err:
-            print(err.message)
-
-    def remove_item_entirely(self, item_name: str):
-        try:
-            if item_name not in self.items:
-                raise ItemNotFound(storage_name=self.name, item_name=item_name)
-            elif self.items[item_name] != 0:
-                raise NotEmptyItem(storage_name=self.name, item_name=item_name)
-            self.items.pop(item_name)
-
-        except NotEmptyItem as err:
-            print(err.message)
-        except ItemNotFound as err:
-            print(err.message)
+    def remove_item_entry(self, item_name: str):
+        if item_name not in self.items:
+            raise ItemNotFound(storage_name=self.name, item_name=item_name)
+        elif self.items[item_name] != 0:
+            raise NotEmptyItem(storage_name=self.name, item_name=item_name)
+        self.items.pop(item_name)
 
     def get_free_space(self) -> int:
         return self.capacity - sum(self.items.values())

@@ -40,7 +40,7 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def remove_item_entirely(self, item_name: str):
+    def remove_item_entry(self, item_name: str):
         """
         Removes item from storage database. Works only if item quantity = 0
 

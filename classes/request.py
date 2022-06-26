@@ -1,4 +1,4 @@
-from typing import Any
+from colorama import Fore
 
 from exceptions import IncorrectRequest, StorageNotFound
 from classes import Store, Shop
@@ -83,10 +83,24 @@ class Request:
         self.amount = int(input_data[1])
         self.product = input_data[2]
 
-    def process_request(self) -> tuple[Any, Any]:
+    def process_request(self):
 
-        list_of_storage_names = [entry.name for entry in self.storages]  # в задаче был именно список, поэтому пришлось городить эти преобразования
+        # в задаче был именно список, поэтому пришлось городить эти преобразования
+        list_of_storage_names = [entry.name for entry in self.storages]
 
-        self.storages[list_of_storage_names.index(self.from_)].remove(item_name=self.product, item_quantity=self.amount)
-        self.storages[list_of_storage_names.index(self.to)].remove(item_name=self.product, item_quantity=self.amount)
-        return self.storages[list_of_storage_names.index(self.from_)], self.storages[list_of_storage_names.index(self.to)]
+        self.amount = self.storages[list_of_storage_names.index(self.from_)].remove(item_name=self.product,
+                                                                                    item_quantity=self.amount)
+
+        print(f'Курьер забирает {self.amount} {self.product} из хранилища "{self.from_}"')
+        print(f'Курьер везёт {self.amount} {self.product} в хранилище "{self.to}"')
+
+        self.storages[list_of_storage_names.index(self.to)].add(item_name=self.product, item_quantity=self.amount)
+
+        print(f'{Fore.LIGHTGREEN_EX}Курьер доставил {self.amount} {self.product} в хранилище "{self.to}"{Fore.RESET}\n')
+
+    def rollback(self):
+
+        list_of_storage_names = [entry.name for entry in self.storages]
+        print(f'{Fore.LIGHTRED_EX}Курьер не смог выполнить доставку!{Fore.RESET}\n')
+        self.storages[list_of_storage_names.index(self.from_)].add(item_name=self.product, item_quantity=self.amount)
+        print(f'Курьер увёз {self.amount} {self.product} обратно в хранилище "{self.from_}"\n')
